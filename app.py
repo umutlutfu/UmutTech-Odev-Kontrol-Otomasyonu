@@ -92,7 +92,7 @@ def login():
         else:
             flash("Hatalı kullanıcı bilgisi veya şifre!")
 
-    return render_template('login.html')
+    return render_template('index.html')
 
 @app.route('/ogrenci')
 def ogrenci_panel():
