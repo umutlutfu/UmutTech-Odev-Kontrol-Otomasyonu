@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="tr" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UmutTech Otomasyonu - Giriş</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = { darkMode: 'class', theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'] }, colors: { brand: { purple: '#7c3aed', indigo: '#6366f1' } } } } }
+    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; overflow-x: hidden; }
+        .light body { background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 50%, #f1f5f9 100%); }
+        .dark body { background: linear-gradient(135deg, #0b0f19 0%, #1e1b4b 50%, #0f172a 100%); }
+        .card-container { transition: all 0.3s ease; }
+        .light .card-container { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(16px); border: 1px solid rgba(226, 232, 240, 0.8); }
+        .dark .card-container { background: rgba(15, 23, 42, 0.75); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.08); }
+    </style>
+    <script>
+        if (localStorage.getItem('theme') === 'dark') {
+            document.documentElement.classList.replace('light', 'dark');
+        }
+    </script>
+</head>
+<body class="flex flex-col min-h-screen items-center justify-center p-4 relative">
+
+    <div class="absolute top-6 right-6 z-20">
+        <button onclick="toggleTheme()" class="px-4 py-2 rounded-xl text-sm font-medium transition-all shadow-sm light:bg-white light:text-slate-700 dark:bg-slate-800 dark:text-slate-200">
+            <span id="themeText">Tema</span>
+        </button>
+    </div>
+
+    <div class="w-full max-w-md z-10 my-8">
+        <div class="text-center mb-8">
+            <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-tr from-brand-purple to-brand-indigo text-white shadow-lg mb-4">
+                <i class="fa-solid fa-graduation-cap text-3xl"></i>
+            </div>
+            <h1 class="text-2xl sm:text-3xl font-bold light:text-slate-900 dark:text-white">UmutTech</h1>
+            <p class="text-brand-purple text-sm font-medium mt-1 uppercase">Ödev Kontrol Otomasyonu</p>
+        </div>
+
+        <div class="card-container rounded-3xl p-8 sm:p-10">
+            <div class="grid grid-cols-2 gap-1.5 p-1 light:bg-slate-100 dark:bg-slate-900/60 rounded-2xl mb-6">
+                <button type="button" onclick="setRole('ogrenci')" id="tab-ogrenci" class="py-2.5 text-xs font-semibold rounded-xl transition-all bg-gradient-to-r from-brand-purple to-brand-indigo text-white">Öğrenci</button>
+                <button type="button" onclick="setRole('ogretmen')" id="tab-ogretmen" class="py-2.5 text-xs font-semibold rounded-xl transition-all light:text-slate-600 dark:text-slate-400">Öğretmen</button>
+            </div>
+
+            <div class="mb-6">
+                <h2 id="formTitle" class="text-xl font-semibold light:text-slate-900 dark:text-white">Öğrenci Oturumu</h2>
+                <p id="formDesc" class="text-sm light:text-slate-500 dark:text-slate-400 mt-1">Devam etmek için okul numaranızı girin.</p>
+            </div>
+
+            {% with messages = get_flashed_messages() %}
+              {% if messages %}
+                <div class="mb-4 p-3 rounded-xl text-xs font-medium bg-rose-500/10 text-rose-500 border border-rose-500/20 text-center">
+                  {{ messages[0] }}
+                </div>
+              {% endif %}
+            {% endwith %}
+
+            <form action="/" method="POST" class="space-y-5">
+                <input type="hidden" name="role" id="roleInput" value="ogrenci">
+
+                <div>
+                    <label id="usernameLabel" class="block text-xs font-semibold light:text-slate-700 dark:text-slate-300 uppercase mb-2">Okul Numarası</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-4 light:text-slate-400"><i class="fa-solid fa-user"></i></span>
+                        <input type="text" name="username" required class="w-full pl-11 pr-4 py-3 light:bg-slate-50 dark:bg-slate-900/50 border rounded-xl light:text-slate-900 dark:text-white text-sm focus:outline-none">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold light:text-slate-700 dark:text-slate-300 uppercase mb-2">Hesap Şifresi</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-4 light:text-slate-400"><i class="fa-solid fa-lock"></i></span>
+                        <input type="password" id="password" name="password" required class="w-full pl-11 pr-12 py-3 light:bg-slate-50 dark:bg-slate-900/50 border rounded-xl light:text-slate-900 dark:text-white text-sm focus:outline-none">
+                        <button type="button" onclick="togglePassword()" class="absolute inset-y-0 right-0 pr-4 flex items-center light:text-slate-400"><i id="toggleIcon" class="fa-solid fa-eye"></i></button>
+                    </div>
+                </div>
+
+                <button type="submit" id="submitBtn" class="w-full py-3.5 px-4 bg-gradient-to-r from-brand-purple to-brand-indigo text-white font-semibold rounded-xl shadow-lg flex items-center justify-center space-x-2">
+                    <span>Giriş Yap</span>
+                    <i class="fa-solid fa-arrow-right-long"></i>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const isDark = document.documentElement.classList.contains('dark');
+            document.getElementById('themeText').innerText = isDark ? 'Beyaz Tema' : 'Koyu Tema';
+        });
+
+        function setRole(role) {
+            document.getElementById('roleInput').value = role;
+            const tabs = { ogrenci: document.getElementById('tab-ogrenci'), ogretmen: document.getElementById('tab-ogretmen') };
+            Object.values(tabs).forEach(t => t.className = "py-2.5 text-xs font-semibold rounded-xl transition-all light:text-slate-600 dark:text-slate-400");
+            tabs[role].className = "py-2.5 text-xs font-semibold rounded-xl transition-all bg-gradient-to-r from-brand-purple to-brand-indigo text-white";
+
+            if(role === 'ogrenci') {
+                document.getElementById('formTitle').innerText = "Öğrenci Oturumu";
+                document.getElementById('usernameLabel').innerText = "Okul Numarası";
+            } else {
+                document.getElementById('formTitle').innerText = "Öğretmen Oturumu";
+                document.getElementById('usernameLabel').innerText = "Erişim Kodu";
+            }
+        }
+
+        function toggleTheme() {
+            const html = document.documentElement;
+            const themeText = document.getElementById('themeText');
+            if (html.classList.contains('light')) {
+                html.classList.replace('light', 'dark');
+                localStorage.setItem('theme', 'dark');
+                themeText.innerText = 'Beyaz Tema';
+            } else {
+                html.classList.replace('dark', 'light');
+                localStorage.setItem('theme', 'light');
+                themeText.innerText = 'Koyu Tema';
+            }
+        }
+
+        function togglePassword() {
+            const pwd = document.getElementById('password');
+            pwd.type = pwd.type === 'password' ? 'text' : 'password';
+        }
+    </script>
+</body>
+</html>

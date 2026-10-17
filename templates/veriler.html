@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="tr" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UmutTech Otomasyonu - Veri Yönetim Paneli</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = { darkMode: 'class', theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'] }, colors: { brand: { purple: '#7c3aed', indigo: '#6366f1' } } } } }
+    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; transition: all 0.3s ease; }
+        .light body { background-color: #f8fafc; color: #0f172a; }
+        .dark body { background-color: #0b0f19; color: #f8fafc; }
+        .ui-card { transition: all 0.3s ease; }
+        .light .ui-card { background: #ffffff; border: 1px solid rgba(226, 232, 240, 0.8); box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05); }
+        .dark .ui-card { background: rgba(15, 23, 42, 0.75); border: 1px solid rgba(255, 255, 255, 0.08); box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3); }
+    </style>
+    <script>
+        if (localStorage.getItem('theme') === 'dark') {
+            document.documentElement.classList.replace('light', 'dark');
+        }
+    </script>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <header class="sticky top-0 z-30 backdrop-blur-md light:bg-white/80 dark:bg-slate-900/80 border-b light:border-slate-200 dark:border-slate-800">
+        <div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-purple to-brand-indigo text-white flex items-center justify-center shadow-md">
+                    <i class="fa-solid fa-database text-lg"></i>
+                </div>
+                <div>
+                    <span class="font-bold text-base tracking-tight light:text-slate-900 dark:text-white">UmutTech</span>
+                    <span class="text-xs text-brand-purple block font-medium">Veri Yönetim Paneli</span>
+                </div>
+            </div>
+
+            <div class="flex items-center space-x-2 sm:space-x-3">
+                <button onclick="window.location.href='/veriler';" class="px-2.5 sm:px-3 py-2 rounded-xl text-xs font-medium light:bg-slate-100 dark:bg-slate-800 flex items-center space-x-1.5 hover:opacity-85">
+                    <i class="fa-solid fa-rotate"></i>
+                    <span class="hidden sm:inline">Yenile</span>
+                </button>
+
+                <button onclick="toggleTheme()" class="px-2.5 sm:px-3 py-2 rounded-xl text-xs font-medium light:bg-slate-100 dark:bg-slate-800">
+                    <span id="themeText">Tema</span>
+                </button>
+                <a href="/logout" class="px-2.5 sm:px-3 py-2 rounded-xl text-xs font-medium bg-rose-500/10 text-rose-500 hover:bg-rose-500/20 flex items-center space-x-1.5">
+                    <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                    <span class="hidden sm:inline">Çıkış</span>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 py-6 space-y-8">
+
+        {% with messages = get_flashed_messages() %}
+          {% if messages %}
+            <div class="p-3 rounded-xl text-xs font-medium bg-purple-500/10 text-brand-purple border border-purple-500/20 text-center">
+              {{ messages[0] }}
+            </div>
+          {% endif %}
+        {% endwith %}
+
+        <div class="ui-card rounded-3xl p-6 sm:p-8 bg-gradient-to-r light:from-purple-50 light:to-indigo-50 dark:from-slate-900 dark:to-indigo-950/40">
+            <h1 class="text-xl sm:text-2xl font-bold light:text-slate-900 dark:text-white">
+                Veritabanı Yönetimi, {{ ad_soyad }}
+            </h1>
+            <p class="text-xs sm:text-sm light:text-slate-600 dark:text-slate-400 mt-2">
+                Sistemdeki tüm kullanıcıları, ödevleri ve teslimatları buradan güncelleyebilir, değiştirebilir veya silebilirsiniz.
+            </p>
+        </div>
+
+        <div class="space-y-4">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                <h2 class="text-lg font-bold flex items-center space-x-2 light:text-slate-900 dark:text-white">
+                    <i class="fa-solid fa-users text-brand-purple"></i>
+                    <span>Kullanıcılar Tablosu</span>
+                </h2>
+                <button onclick="openModal('userModal')" class="px-4 py-2 bg-brand-purple text-white rounded-xl text-xs font-semibold shadow hover:opacity-90">
+                    <i class="fa-solid fa-plus mr-1"></i> Yeni Kullanıcı Ekle
+                </button>
+            </div>
+            <div class="ui-card rounded-3xl overflow-hidden shadow-sm">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse text-xs">
+                        <thead>
+                            <tr class="light:bg-slate-100 dark:bg-slate-900/80 light:text-slate-700 dark:text-slate-200 border-b light:border-slate-200 dark:border-slate-800">
+                                <th class="p-4 font-bold uppercase">Numara</th>
+                                <th class="p-4 font-bold uppercase">Ad Soyad</th>
+                                <th class="p-4 font-bold uppercase">Şifre</th>
+                                <th class="p-4 font-bold uppercase">Kategori / Rol</th>
+                                <th class="p-4 font-bold uppercase text-right">İşlemler</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y light:divide-slate-200 dark:divide-slate-800">
+                            {% for u in users %}
+                            <tr>
+                                <form action="/veriler" method="POST">
+                                    <input type="hidden" name="action" value="update_user">
+                                    <input type="hidden" name="old_num" value="{{ u.giris_numarasi }}">
+                                    <td class="p-4 font-semibold light:text-slate-900 dark:text-white"><input type="text" name="num" value="{{ u.giris_numarasi }}" class="bg-transparent border-b border-dashed light:border-slate-300 dark:border-slate-700 w-24 px-1 focus:outline-none"></td>
+                                    <td class="p-4 flex space-x-1">
+                                        <input type="text" name="isim" value="{{ u.isim }}" class="bg-transparent border-b border-dashed light:border-slate-300 dark:border-slate-700 w-20 px-1 focus:outline-none">
+                                        <input type="text" name="soyisim" value="{{ u.soyisim }}" class="bg-transparent border-b border-dashed light:border-slate-300 dark:border-slate-700 w-20 px-1 focus:outline-none">
+                                    </td>
+                                    <td class="p-4"><input type="text" name="sifre" value="{{ u.giris_sifresi }}" class="bg-transparent border-b border-dashed light:border-slate-300 dark:border-slate-700 w-20 px-1 focus:outline-none"></td>
+                                    <td class="p-4">
+                                        <select name="katagori" class="light:bg-slate-50 dark:bg-slate-900 border rounded px-2 py-1 text-xs">
+                                            <option value="ogrenci" {% if u.katagori == 'ogrenci' %}selected{% endif %}>Öğrenci</option>
+                                            <option value="ogretmen" {% if u.katagori == 'ogretmen' %}selected{% endif %}>Öğretmen</option>
+                                            <option value="kontrolcu" {% if u.katagori == 'kontrolcu' %}selected{% endif %}>Kontrolcü</option>
+                                        </select>
+                                    </td>
+                                    <td class="p-4 text-right space-x-1">
+                                        <button type="submit" class="px-2.5 py-1 bg-indigo-500/10 text-indigo-500 font-semibold rounded hover:bg-indigo-500/20" title="Kaydet"><i class="fa-solid fa-floppy-disk"></i></button>
+                                </form>
+                                <form action="/veriler" method="POST" class="inline">
+                                    <input type="hidden" name="action" value="delete_user">
+                                    <input type="hidden" name="num" value="{{ u.giris_numarasi }}">
+                                    <button type="submit" onclick="return confirm('Kullanıcıyı silmek istediğinize emin misiniz?')" class="px-2.5 py-1 bg-rose-500/10 text-rose-500 font-semibold rounded hover:bg-rose-500/20" title="Sil"><i class="fa-solid fa-trash"></i></button>
+                                </form>
+                                    </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="space-y-4">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                <h2 class="text-lg font-bold flex items-center space-x-2 light:text-slate-900 dark:text-white">
+                    <i class="fa-solid fa-book text-brand-purple"></i>
+                    <span>Ödevler Tablosu</span>
+                </h2>
+                <button onclick="openModal('assignmentModal')" class="px-4 py-2 bg-brand-purple text-white rounded-xl text-xs font-semibold shadow hover:opacity-90">
+                    <i class="fa-solid fa-plus mr-1"></i> Yeni Ödev Ekle
+                </button>
+            </div>
+            <div class="ui-card rounded-3xl overflow-hidden shadow-sm">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse text-xs">
+                        <thead>
+                            <tr class="light:bg-slate-100 dark:bg-slate-900/80 light:text-slate-700 dark:text-slate-200 border-b light:border-slate-200 dark:border-slate-800">
+                                <th class="p-4 font-bold uppercase">ID</th>
+                                <th class="p-4 font-bold uppercase">Başlık & Ders</th>
+                                <th class="p-4 font-bold uppercase">Açıklama</th>
+                                <th class="p-4 font-bold uppercase">Son Tarih</th>
+                                <th class="p-4 font-bold uppercase text-right">İşlemler</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y light:divide-slate-200 dark:divide-slate-800">
+                            {% for a in assignments %}
+                            <tr>
+                                <form action="/veriler" method="POST">
+                                    <input type="hidden" name="action" value="update_assignment">
+                                    <input type="hidden" name="id" value="{{ a.id }}">
+                                    <td class="p-4 font-mono text-[11px] text-slate-400">{{ a.id }}</td>
+                                    <td class="p-4 space-y-1">
+                                        <input type="text" name="title" value="{{ a.title }}" class="bg-transparent border-b border-dashed light:border-slate-300 dark:border-slate-700 w-full px-1 font-semibold focus:outline-none light:text-slate-900 dark:text-white">
+                                        <input type="text" name="course" value="{{ a.course_name }}" class="bg-transparent border-b border-dashed light:border-slate-300 dark:border-slate-700 w-full px-1 text-slate-400 text-[10px] focus:outline-none">
+                                    </td>
+                                    <td class="p-4"><input type="text" name="desc" value="{{ a.description }}" class="bg-transparent border-b border-dashed light:border-slate-300 dark:border-slate-700 w-full px-1 focus:outline-none"></td>
+                                    <td class="p-4"><input type="text" name="due" value="{{ a.due_date }}" class="bg-transparent border-b border-dashed light:border-slate-300 dark:border-slate-700 w-36 px-1 text-rose-500 font-semibold focus:outline-none"></td>
+                                    <td class="p-4 text-right space-x-1">
+                                        <button type="submit" class="px-2.5 py-1 bg-indigo-500/10 text-indigo-500 font-semibold rounded hover:bg-indigo-500/20" title="Kaydet"><i class="fa-solid fa-floppy-disk"></i></button>
+                                </form>
+                                <form action="/veriler" method="POST" class="inline">
+                                    <input type="hidden" name="action" value="delete_assignment">
+                                    <input type="hidden" name="id" value="{{ a.id }}">
+                                    <button type="submit" onclick="return confirm('Ödevi silmek istediğinize emin misiniz?')" class="px-2.5 py-1 bg-rose-500/10 text-rose-500 font-semibold rounded hover:bg-rose-500/20" title="Sil"><i class="fa-solid fa-trash"></i></button>
+                                </form>
+                                    </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="space-y-4">
+            <h2 class="text-lg font-bold flex items-center space-x-2 light:text-slate-900 dark:text-white">
+                <i class="fa-solid fa-clipboard-list text-brand-purple"></i>
+                <span>Teslimatlar Tablosu</span>
+            </h2>
+            <div class="ui-card rounded-3xl overflow-hidden shadow-sm">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse text-xs">
+                        <thead>
+                            <tr class="light:bg-slate-100 dark:bg-slate-900/80 light:text-slate-700 dark:text-slate-200 border-b light:border-slate-200 dark:border-slate-800">
+                                <th class="p-4 font-bold uppercase">Öğrenci & Ödev</th>
+                                <th class="p-4 font-bold uppercase">Öğrenci Notu</th>
+                                <th class="p-4 font-bold uppercase">Durum</th>
+                                <th class="p-4 font-bold uppercase">Kontrol Eden</th>
+                                <th class="p-4 font-bold uppercase text-right">İşlemler</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y light:divide-slate-200 dark:divide-slate-800">
+                            {% for s in submissions %}
+                            <tr>
+                                <form action="/veriler" method="POST">
+                                    <input type="hidden" name="action" value="update_submission">
+                                    <input type="hidden" name="sub_id" value="{{ s.id }}">
+                                    <td class="p-4 font-semibold light:text-slate-900 dark:text-white">
+                                        {{ s.isim }} {{ s.soyisim }} <span class="text-slate-400 block text-[10px]">{{ s.title }}</span>
+                                    </td>
+                                    <td class="p-4 italic text-slate-600 dark:text-slate-300">"{{ s.student_note }}"</td>
+                                    <td class="p-4">
+                                        <input type="text" name="status" value="{{ s.status }}" class="bg-transparent border-b border-dashed light:border-slate-300 dark:border-slate-700 w-full px-1 font-semibold focus:outline-none light:text-slate-900 dark:text-white">
+                                    </td>
+                                    <td class="p-4">
+                                        <input type="text" name="checked_by" value="{{ s.checked_by if s.checked_by else '' }}" placeholder="-" class="bg-transparent border-b border-dashed light:border-slate-300 dark:border-slate-700 w-28 px-1 text-brand-purple focus:outline-none">
+                                    </td>
+                                    <td class="p-4 text-right space-x-1">
+                                        <button type="submit" class="px-2.5 py-1 bg-indigo-500/10 text-indigo-500 font-semibold rounded hover:bg-indigo-500/20" title="Kaydet"><i class="fa-solid fa-floppy-disk"></i></button>
+                                </form>
+                                <form action="/veriler" method="POST" class="inline">
+                                    <input type="hidden" name="action" value="delete_submission">
+                                    <input type="hidden" name="sub_id" value="{{ s.id }}">
+                                    <button type="submit" onclick="return confirm('Teslimat kaydını silmek istediğinize emin misiniz?')" class="px-2.5 py-1 bg-rose-500/10 text-rose-500 font-semibold rounded hover:bg-rose-500/20" title="Sil"><i class="fa-solid fa-trash"></i></button>
+                                </form>
+                                    </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Kullanıcı Ekle Modal -->
+    <div id="userModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm hidden">
+        <div class="ui-card w-full max-w-md rounded-3xl p-6 sm:p-8 space-y-5">
+            <div class="flex items-center justify-between">
+                <h3 class="text-lg font-bold light:text-slate-900 dark:text-white">Yeni Kullanıcı Ekle</h3>
+                <button onclick="closeModal('userModal')" class="w-8 h-8 rounded-full light:bg-slate-100 dark:bg-slate-800 flex items-center justify-center"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form action="/veriler" method="POST" class="space-y-4 text-xs">
+                <input type="hidden" name="action" value="add_user">
+                <div><label class="block font-semibold uppercase mb-1">Numara / Kimlik</label><input type="text" name="num" required class="w-full p-3 light:bg-slate-50 dark:bg-slate-900/50 border rounded-xl"></div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div><label class="block font-semibold uppercase mb-1">İsim</label><input type="text" name="isim" required class="w-full p-3 light:bg-slate-50 dark:bg-slate-900/50 border rounded-xl"></div>
+                    <div><label class="block font-semibold uppercase mb-1">Soyisim</label><input type="text" name="soyisim" required class="w-full p-3 light:bg-slate-50 dark:bg-slate-900/50 border rounded-xl"></div>
+                </div>
+                <div><label class="block font-semibold uppercase mb-1">Şifre</label><input type="password" name="sifre" required class="w-full p-3 light:bg-slate-50 dark:bg-slate-900/50 border rounded-xl"></div>
+                <div>
+                    <label class="block font-semibold uppercase mb-1">Kategori / Rol</label>
+                    <select name="katagori" class="w-full p-3 light:bg-slate-50 dark:bg-slate-900/50 border rounded-xl">
+                        <option value="ogrenci">Öğrenci</option>
+                        <option value="ogretmen">Öğretmen</option>
+                        <option value="kontrolcu">Kontrolcü</option>
+                    </select>
+                </div>
+                <button type="submit" class="w-full py-3 bg-brand-purple text-white font-semibold rounded-xl">Kullanıcıyı Kaydet</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Ödev Ekle Modal -->
+    <div id="assignmentModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm hidden">
+        <div class="ui-card w-full max-w-md rounded-3xl p-6 sm:p-8 space-y-5">
+            <div class="flex items-center justify-between">
+                <h3 class="text-lg font-bold light:text-slate-900 dark:text-white">Yeni Ödev Ekle</h3>
+                <button onclick="closeModal('assignmentModal')" class="w-8 h-8 rounded-full light:bg-slate-100 dark:bg-slate-800 flex items-center justify-center"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form action="/veriler" method="POST" class="space-y-4 text-xs">
+                <input type="hidden" name="action" value="add_assignment">
+                <div><label class="block font-semibold uppercase mb-1">Ödev Başlığı</label><input type="text" name="title" required class="w-full p-3 light:bg-slate-50 dark:bg-slate-900/50 border rounded-xl"></div>
+                <div><label class="block font-semibold uppercase mb-1">Ders Adı</label><input type="text" name="course" required class="w-full p-3 light:bg-slate-50 dark:bg-slate-900/50 border rounded-xl"></div>
+                <div><label class="block font-semibold uppercase mb-1">Açıklama</label><textarea name="desc" rows="2" class="w-full p-3 light:bg-slate-50 dark:bg-slate-900/50 border rounded-xl"></textarea></div>
+                <div><label class="block font-semibold uppercase mb-1">Son Teslim Tarihi ve Saati</label><input type="datetime-local" name="due" required class="w-full p-3 light:bg-slate-50 dark:bg-slate-900/50 border rounded-xl"></div>
+                <button type="submit" class="w-full py-3 bg-brand-purple text-white font-semibold rounded-xl">Ödevi Yayınla</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const isDark = document.documentElement.classList.contains('dark');
+            document.getElementById('themeText').innerText = isDark ? 'Beyaz Tema' : 'Koyu Tema';
+        });
+
+        function toggleTheme() {
+            const html = document.documentElement;
+            const themeText = document.getElementById('themeText');
+            if (html.classList.contains('light')) {
+                html.classList.replace('light', 'dark');
+                localStorage.setItem('theme', 'dark');
+                themeText.innerText = 'Beyaz Tema';
+            } else {
+                html.classList.replace('dark', 'light');
+                localStorage.setItem('theme', 'light');
+                themeText.innerText = 'Koyu Tema';
+            }
+        }
+        function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
+        function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+    </script>
+</body>
+</html>

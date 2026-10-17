@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="tr" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UmutTech Otomasyonu - Öğrenci Paneli</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = { darkMode: 'class', theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'] }, colors: { brand: { purple: '#7c3aed', indigo: '#6366f1' } } } } }
+    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; transition: all 0.3s ease; }
+        .light body { background-color: #f8fafc; color: #0f172a; }
+        .dark body { background-color: #0b0f19; color: #f8fafc; }
+        .ui-card { transition: all 0.3s ease; }
+        .light .ui-card { background: #ffffff; border: 1px solid rgba(226, 232, 240, 0.8); box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05); }
+        .dark .ui-card { background: rgba(15, 23, 42, 0.75); border: 1px solid rgba(255, 255, 255, 0.08); box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3); }
+        .btn-upload-action {
+            background: linear-gradient(135deg, #7c3aed 0%, #6366f1 100%);
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(124, 58, 237, 0.35);
+        }
+        .btn-upload-action:hover {
+            opacity: 0.92;
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(124, 58, 237, 0.5);
+        }
+        input[type="file"]::file-selector-button {
+            background: linear-gradient(135deg, #7c3aed 0%, #6366f1 100%);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            font-family: 'Inter', sans-serif;
+            margin-right: 12px;
+            transition: opacity 0.2s ease;
+        }
+        input[type="file"]::file-selector-button:hover { opacity: 0.85; }
+    </style>
+    <script>
+        if (localStorage.getItem('theme') === 'dark') {
+            document.documentElement.classList.replace('light', 'dark');
+        }
+    </script>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <header class="sticky top-0 z-30 backdrop-blur-md light:bg-white/80 dark:bg-slate-900/80 border-b light:border-slate-200 dark:border-slate-800">
+        <div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-purple to-brand-indigo text-white flex items-center justify-center shadow-md">
+                    <i class="fa-solid fa-graduation-cap text-lg"></i>
+                </div>
+                <div>
+                    <span class="font-bold text-base tracking-tight light:text-slate-900 dark:text-white">UmutTech</span>
+                    <span class="text-xs text-brand-purple block font-medium">Öğrenci Paneli</span>
+                </div>
+            </div>
+
+            <div class="flex items-center space-x-2 sm:space-x-3">
+                <button onclick="window.location.href='/ogrenci';" class="px-2.5 sm:px-3 py-2 rounded-xl text-xs font-medium light:bg-slate-100 dark:bg-slate-800 flex items-center space-x-1.5 hover:opacity-85">
+                    <i class="fa-solid fa-rotate"></i>
+                    <span class="hidden sm:inline">Yenile</span>
+                </button>
+                
+                <button onclick="openModal('passwordModal')" class="px-2.5 sm:px-3 py-2 rounded-xl text-xs font-medium light:bg-slate-100 dark:bg-slate-800 flex items-center space-x-1.5 hover:opacity-85">
+                    <i class="fa-solid fa-key text-brand-purple"></i>
+                    <span class="hidden sm:inline">Şifre Değiştir</span>
+                </button>
+
+                {% if session.get('katagori') == 'kontrolcu' %}
+                <a href="/kontrolcu" class="px-2.5 sm:px-3 py-2 rounded-xl text-xs font-medium light:bg-purple-50 dark:bg-purple-950/40 text-brand-purple">Kontrol Paneli</a>
+                {% endif %}
+                <button onclick="toggleTheme()" class="px-2.5 sm:px-3 py-2 rounded-xl text-xs font-medium light:bg-slate-100 dark:bg-slate-800">
+                    <span id="themeText">Tema</span>
+                </button>
+                <a href="/logout" class="px-2.5 sm:px-3 py-2 rounded-xl text-xs font-medium bg-rose-500/10 text-rose-500 hover:bg-rose-500/20 flex items-center space-x-1.5">
+                    <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                    <span class="hidden sm:inline">Çıkış</span>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 py-6 space-y-6">
+
+        {% with messages = get_flashed_messages() %}
+          {% if messages %}
+            <div class="p-3 rounded-xl text-xs font-medium bg-purple-500/10 text-brand-purple border border-purple-500/20 text-center">
+              {{ messages[0] }}
+            </div>
+          {% endif %}
+        {% endwith %}
+
+        <div class="ui-card rounded-3xl p-6 sm:p-8 bg-gradient-to-r light:from-purple-50 light:to-indigo-50 dark:from-slate-900 dark:to-indigo-950/40">
+            <h1 class="text-xl sm:text-2xl font-bold light:text-slate-900 dark:text-white">
+                Merhaba, {{ student_name }}
+            </h1>
+            <p class="text-xs sm:text-sm light:text-slate-600 dark:text-slate-400 mt-2">
+                Ödevlerinizi buradan teslim edebilir, gönderdiğiniz dosyaları ve inceleme durumlarını takip edebilirsiniz.
+            </p>
+        </div>
+
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="ui-card p-4 sm:p-5 rounded-2xl flex items-center space-x-3 sm:space-x-4">
+                <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-blue-500/10 text-blue-500 flex items-center justify-center text-lg sm:text-xl font-bold"><i class="fa-solid fa-folder-open"></i></div>
+                <div><p class="text-[11px] sm:text-xs text-slate-500 font-medium">Toplam</p><h3 class="text-lg sm:text-xl font-bold mt-0.5 light:text-slate-900 dark:text-white">{{ stats.toplam }}</h3></div>
+            </div>
+            <div class="ui-card p-4 sm:p-5 rounded-2xl flex items-center space-x-3 sm:space-x-4">
+                <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center text-lg sm:text-xl font-bold"><i class="fa-solid fa-circle-check"></i></div>
+                <div><p class="text-[11px] sm:text-xs text-slate-500 font-medium">Yapılan</p><h3 class="text-lg sm:text-xl font-bold mt-0.5 light:text-slate-900 dark:text-white">{{ stats.yapilan }}</h3></div>
+            </div>
+            <div class="ui-card p-4 sm:p-5 rounded-2xl flex items-center space-x-3 sm:space-x-4">
+                <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center text-lg sm:text-xl font-bold"><i class="fa-solid fa-clock"></i></div>
+                <div><p class="text-[11px] sm:text-xs text-slate-500 font-medium">Bekleyen</p><h3 class="text-lg sm:text-xl font-bold mt-0.5 light:text-slate-900 dark:text-white">{{ stats.yapilmayan }}</h3></div>
+            </div>
+            <div class="ui-card p-4 sm:p-5 rounded-2xl flex items-center space-x-3 sm:space-x-4">
+                <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-rose-500/10 text-rose-500 flex items-center justify-center text-lg sm:text-xl font-bold"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                <div><p class="text-[11px] sm:text-xs text-slate-500 font-medium">Geç</p><h3 class="text-lg sm:text-xl font-bold mt-0.5 light:text-slate-900 dark:text-white">{{ stats.gec }}</h3></div>
+            </div>
+        </div>
+
+        <h2 class="text-lg font-bold flex items-center space-x-2 pt-2 light:text-slate-900 dark:text-white">
+            <i class="fa-solid fa-list-check text-brand-purple"></i>
+            <span>Atanan Ödevler Listesi</span>
+        </h2>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for item in assignments %}
+            <div class="ui-card rounded-3xl p-6 flex flex-col justify-between space-y-4">
+                <div>
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="px-3 py-1 rounded-full text-xs font-semibold bg-purple-500/10 text-brand-purple">{{ item.course_name }}</span>
+                        <span class="px-2.5 py-1 rounded-full text-xs font-semibold 
+                            {% if 'Onaylandı' in item.status %} bg-emerald-500/10 text-emerald-500 
+                            {% elif 'Reddedildi' in item.status %} bg-rose-500/10 text-rose-500 
+                            {% elif item.status == 'Beklemede' %} bg-amber-500/10 text-amber-500 
+                            {% else %} bg-slate-500/10 text-slate-500 {% endif %}">
+                            {{ item.status }}
+                        </span>
+                    </div>
+                    <h3 class="font-bold text-base light:text-slate-900 dark:text-white">{{ item.title }}</h3>
+                    <p class="text-xs text-slate-500 mt-2">{{ item.description }}</p>
+                </div>
+
+                <div class="space-y-2 pt-2 border-t light:border-slate-100 dark:border-slate-800 text-xs">
+                    <div class="flex items-center justify-between text-slate-500">
+                        <span>Son Tarih:</span>
+                        <span class="font-semibold text-rose-500">{{ item.due_date }}</span>
+                    </div>
+
+                    {% if item.is_submitted %}
+                    <div class="p-3 rounded-xl light:bg-slate-50 dark:bg-slate-900/60 space-y-1.5 text-xs">
+                        <p class="font-medium text-brand-purple"><i class="fa-solid fa-paperclip mr-1"></i> Notunuz:</p>
+                        <p class="text-slate-600 dark:text-slate-300 italic">"{{ item.student_note }}"</p>
+                        <div class="flex items-center justify-between pt-1">
+                            <a href="{{ url_for('uploaded_file', filename=item.file_path) }}" target="_blank" class="text-brand-indigo underline font-semibold flex items-center space-x-1">
+                                <i class="fa-solid fa-file-arrow-down"></i>
+                                <span>Dosyamı Gör</span>
+                            </a>
+                            <span class="text-[10px] text-slate-400">{{ item.submit_date }}</span>
+                        </div>
+                        {% if item.checked_by %}
+                        <div class="pt-1 text-[11px] text-emerald-600 dark:text-emerald-400 font-medium border-t light:border-slate-200 dark:border-slate-800 mt-1">
+                            <i class="fa-solid fa-user-shield mr-1"></i> Kontrol Eden: {{ item.checked_by }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+
+                    {% if not item.is_submitted or item.is_rejected %}
+                    <button onclick="openUploadModal('{{ item.id }}', '{{ item.title }}')" class="w-full py-3 btn-upload-action text-white font-semibold rounded-xl flex items-center justify-center space-x-2 mt-2 shadow-md">
+                        <i class="fa-solid fa-upload"></i>
+                        <span>{% if item.is_rejected %}Tekrar Gönder{% else %}Ödevi Teslim Et{% endif %}</span>
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </main>
+
+    <!-- Ödev Yükleme Modal -->
+    <div id="uploadModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm hidden">
+        <div class="ui-card w-full max-w-md rounded-3xl p-6 sm:p-8 space-y-5">
+            <div class="flex items-center justify-between">
+                <h3 id="modalTitle" class="text-lg font-bold light:text-slate-900 dark:text-white">Ödev Teslim Et</h3>
+                <button onclick="closeUploadModal()" class="w-8 h-8 rounded-full light:bg-slate-100 dark:bg-slate-800 flex items-center justify-center"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <form action="/submit-assignment" method="POST" enctype="multipart/form-data" class="space-y-4 text-xs">
+                <input type="hidden" name="assignment_id" id="modalAssignmentId">
+                <div>
+                    <label class="block font-semibold uppercase mb-2 light:text-slate-700 dark:text-slate-300">Açıklama / Notunuz</label>
+                    <textarea name="note" required rows="3" class="w-full p-3 light:bg-slate-50 dark:bg-slate-900/50 border rounded-xl text-sm focus:outline-none light:text-slate-900 dark:text-white"></textarea>
+                </div>
+                <div>
+                    <label class="block font-semibold uppercase mb-2 light:text-slate-700 dark:text-slate-300">Dosya Seç / Yükle</label>
+                    <input type="file" name="file" accept="image/*,application/pdf,.doc,.docx" required class="w-full text-xs light:text-slate-300 p-2 light:bg-slate-50 dark:bg-slate-900/50 border rounded-xl">
+                </div>
+                <button type="submit" class="w-full py-3 btn-upload-action text-white font-semibold rounded-xl text-xs flex items-center justify-center space-x-2 shadow-md">
+                    <i class="fa-solid fa-paper-plane"></i>
+                    <span>Teslimi Kaydet</span>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Şifre Değiştirme Modal -->
+    <div id="passwordModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm hidden">
+        <div class="ui-card w-full max-w-md rounded-3xl p-6 sm:p-8 space-y-5">
+            <div class="flex items-center justify-between">
+                <h3 class="text-lg font-bold light:text-slate-900 dark:text-white">Şifremi Değiştir</h3>
+                <button onclick="closeModal('passwordModal')" class="w-8 h-8 rounded-full light:bg-slate-100 dark:bg-slate-800 flex items-center justify-center"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <form action="/sifre-degistir" method="POST" class="space-y-4 text-xs">
+                <div>
+                    <label class="block font-semibold uppercase mb-2 light:text-slate-700 dark:text-slate-300">Mevcut Şifre</label>
+                    <input type="password" name="eski_sifre" required class="w-full p-3 light:bg-slate-50 dark:bg-slate-900/50 border rounded-xl text-sm focus:outline-none light:text-slate-900 dark:text-white">
+                </div>
+                <div>
+                    <label class="block font-semibold uppercase mb-2 light:text-slate-700 dark:text-slate-300">Yeni Şifre</label>
+                    <input type="password" name="yeni_sifre" required class="w-full p-3 light:bg-slate-50 dark:bg-slate-900/50 border rounded-xl text-sm focus:outline-none light:text-slate-900 dark:text-white">
+                </div>
+                <button type="submit" class="w-full py-3 bg-brand-purple text-white font-semibold rounded-xl text-xs flex items-center justify-center space-x-2 shadow-md">
+                    <i class="fa-solid fa-key"></i>
+                    <span>Şifreyi Güncelle</span>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const isDark = document.documentElement.classList.contains('dark');
+            document.getElementById('themeText').innerText = isDark ? 'Beyaz Tema' : 'Koyu Tema';
+        });
+
+        function toggleTheme() {
+            const html = document.documentElement;
+            const themeText = document.getElementById('themeText');
+            if (html.classList.contains('light')) {
+                html.classList.replace('light', 'dark');
+                localStorage.setItem('theme', 'dark');
+                themeText.innerText = 'Beyaz Tema';
+            } else {
+                html.classList.replace('dark', 'light');
+                localStorage.setItem('theme', 'light');
+                themeText.innerText = 'Koyu Tema';
+            }
+        }
+        function openUploadModal(id, title) {
+            document.getElementById('modalAssignmentId').value = id;
+            document.getElementById('modalTitle').innerText = title + " - Teslim Et";
+            document.getElementById('uploadModal').classList.remove('hidden');
+        }
+        function closeUploadModal() { document.getElementById('uploadModal').classList.add('hidden'); }
+        function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
+        function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+    </script>
+</body>
+</html>
